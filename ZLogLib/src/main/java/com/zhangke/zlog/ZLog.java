@@ -117,7 +117,7 @@ public class ZLog {
             sbLog.append(TAG);
             sbLog.append("--->");
             sbLog.append(text);
-            sbLog.append("\n\n");
+            sbLog.append("\n");
             return sbLog.toString();
         }catch(Exception e){
             Log.e(TAG, "buildMessage: ", e);

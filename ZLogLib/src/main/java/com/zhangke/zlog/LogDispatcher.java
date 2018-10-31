@@ -5,9 +5,13 @@ import android.util.Log;
 
 import java.io.File;
 import java.io.FileWriter;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 import java.util.concurrent.LinkedBlockingQueue;
 
 /**
@@ -83,55 +87,81 @@ class LogDispatcher extends Thread {
         return returnFileName;
     }
 
-    /**
-     * 根据目录路径及文件前缀获取最后一个该日志文件；
-     * 比如当前文件夹下有log1.txt, log2.txt, log3.txt,则返回 log3.txt;
-     * 当文件个数为9，且最后一个文件大于1M，则清除Log文件
-     *
-     * @param dir     文件路径
-     * @param logName 文件名开头，如 log
-     * @return 文件名
-     */
-    private String getLastLogFileName(String dir, String logName) {
-        String returnFileName = String.format("%s/%s1.txt", dir, logName);
+
+    private static String getLastLogFileName(String dir, String logName) {
+
+
+        String returnFileName = getValidDateStr(new Date()) + "_" + logName + ".txt";;
         File file = new File(dir);
         if (file.exists()) {
             String[] fileArray = file.list();
             if (fileArray != null && fileArray.length > 0) {
                 List<String> logList = new ArrayList<>();
-                for (String s : fileArray) {
-                    if (s.startsWith(logName) && s.length() == logName.length() + 5) {
-                        logList.add(s);
-                    }
-                }
-                if (!logList.isEmpty()) {
-                    Collections.sort(logList);
-                    String lastFileName = logList.get(logList.size() - 1);
-                    if (new File(String.format("%s/%s", dir, lastFileName)).length() > MAX_LOG_SIZE) {
-                        if (lastFileName.contains(".")) {
-                            int LastLogCount = Integer.valueOf(lastFileName.split("\\.")[0].replaceAll(logName, "").trim());
-                            if (LastLogCount > 8) {
-                                try {
-                                    for (String itemFileName : logList) {
-                                        File itemFile = new File(String.format("%s/%s", dir, itemFileName));
-                                        itemFile.delete();
-                                    }
-                                } catch (Exception e) {
-                                    Log.e(TAG, "getLastLogFileName: ", e);
-                                }
-                                returnFileName = String.format("%s/%s1.txt", dir, logName);
-                            }else{
-                                LastLogCount++;
-                                returnFileName = String.format("%s/%s%s.txt", dir, logName, LastLogCount);
+                for (String logfile : fileArray) {
+                    int index = logfile.lastIndexOf("_");
+                    if (index >0) {
+                        String subStr = logfile.substring(0, index);
+//                       System.out.println("loglists1:" + subStr);
+                        Date date1 = stringToDate(subStr, "yyyy_MMdd_HHmm");
+//                      System.out.println("date1:" + date1 + " time:" + date1.getTime());
+                        if (date1 != null) {
+                            long chazhi = System.currentTimeMillis() - date1.getTime();
+                            if (chazhi > 24 * 60 * 60 * 1000) {
+                                new File(String.format("%s/%s", dir, logfile)).delete();
                             }
+                        }else {
+                            new File(String.format("%s/%s", dir, logfile)).delete();
                         }
-                    } else {
-                        returnFileName = String.format("%s/%s", dir, lastFileName);
+                    }else {
+                        new File(String.format("%s/%s", dir, logfile)).delete();
                     }
                 }
+                returnFileName = getValidDateStr(new Date()) + "_" + logName + ".txt";
             }
         }
         return returnFileName;
+    }
+
+    /**
+     * 时间转换
+     * @param data
+     * @return
+     */
+    public static String getValidDateStr(Date data) {
+        String sDate = "";
+        SimpleDateFormat sdf1 = new SimpleDateFormat("EEE MMM dd HH:mm:ss Z yyyy", Locale.UK);
+        try {
+            Date date = sdf1.parse(sdf1.format(data));
+            SimpleDateFormat sdf = new SimpleDateFormat("yyyy_MMdd_HHmm");
+            sDate = sdf.format(date);
+        } catch (ParseException e) {
+//            Log.e("日期装换方法是把：" + data + "******" + e);
+        }
+        return sDate;
+    }
+
+    /**
+     * String转Date
+     * @param dateStr
+     * @param format
+     * @return
+     * @author wul
+     * 2016-1-17
+     */
+    public static Date stringToDate(String dateStr, String format) {
+        if(dateStr == null || "".equals(dateStr)){
+            return null;
+        }
+        Date date = null;
+        //注意format的格式要与日期String的格式相匹配
+        SimpleDateFormat sdf = new SimpleDateFormat(format);
+        try {
+            date = sdf.parse(dateStr);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return  null;
+        }
+        return date;
     }
 
     /**
@@ -166,5 +196,9 @@ class LogDispatcher extends Thread {
         } catch (Exception e) {
             Log.e(TAG, "saveTextToFile: ", e);
         }
+    }
+
+    public static void main(String[] argc){
+        System.out.print("hello");
     }
 }
