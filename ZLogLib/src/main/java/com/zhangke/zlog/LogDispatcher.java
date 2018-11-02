@@ -22,7 +22,7 @@ class LogDispatcher extends Thread {
 
     private static final String TAG = "LogDispatcher";
 
-    private final int MAX_LOG_SIZE = 1024 * 1024;
+    private static final int MAX_LOG_SIZE = 1024 * 1024;
 
     /**
      * 存储日志的队列
@@ -89,9 +89,7 @@ class LogDispatcher extends Thread {
 
 
     private static String getLastLogFileName(String dir, String logName) {
-
-
-        String returnFileName = getValidDateStr(new Date()) + "_" + logName + ".txt";;
+        String logNameLast = getValidDateStr(new Date()) + "_" + logName + ".txt";
         File file = new File(dir);
         if (file.exists()) {
             String[] fileArray = file.list();
@@ -99,31 +97,41 @@ class LogDispatcher extends Thread {
                 List<String> logList = new ArrayList<>();
                 for (String logfile : fileArray) {
                     int index = logfile.lastIndexOf("_");
-                    if (index >0) {
+                    if (index > 0) {
                         String subStr = logfile.substring(0, index);
-//                       System.out.println("loglists1:" + subStr);
                         Date date1 = stringToDate(subStr, "yyyy_MMdd_HHmm");
-//                      System.out.println("date1:" + date1 + " time:" + date1.getTime());
                         if (date1 != null) {
                             long chazhi = System.currentTimeMillis() - date1.getTime();
                             if (chazhi > 24 * 60 * 60 * 1000) {
                                 new File(String.format("%s/%s", dir, logfile)).delete();
+                            } else {
+                                if (logfile.contains(logName)) {
+                                    logList.add(logfile);
+                                }
                             }
-                        }else {
+                        } else {
                             new File(String.format("%s/%s", dir, logfile)).delete();
                         }
-                    }else {
+                    } else {
                         new File(String.format("%s/%s", dir, logfile)).delete();
                     }
                 }
-                returnFileName = getValidDateStr(new Date()) + "_" + logName + ".txt";
+                if (logList.size() != 0) {
+                    Collections.sort(logList);
+                    String lastFileName = logList.get(logList.size() - 1);
+                    if (new File(String.format("%s/%s", dir, lastFileName)).length() < MAX_LOG_SIZE)
+                        logNameLast = lastFileName;
+                }
             }
         }
+        String returnFileName = String.format("%s/%s", dir, logNameLast);
+
         return returnFileName;
     }
 
     /**
      * 时间转换
+     *
      * @param data
      * @return
      */
@@ -142,6 +150,7 @@ class LogDispatcher extends Thread {
 
     /**
      * String转Date
+     *
      * @param dateStr
      * @param format
      * @return
@@ -149,7 +158,7 @@ class LogDispatcher extends Thread {
      * 2016-1-17
      */
     public static Date stringToDate(String dateStr, String format) {
-        if(dateStr == null || "".equals(dateStr)){
+        if (dateStr == null || "".equals(dateStr)) {
             return null;
         }
         Date date = null;
@@ -159,7 +168,7 @@ class LogDispatcher extends Thread {
             date = sdf.parse(dateStr);
         } catch (Exception e) {
             e.printStackTrace();
-            return  null;
+            return null;
         }
         return date;
     }
@@ -198,7 +207,7 @@ class LogDispatcher extends Thread {
         }
     }
 
-    public static void main(String[] argc){
+    public static void main(String[] argc) {
         System.out.print("hello");
     }
 }
