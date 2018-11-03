@@ -46,6 +46,20 @@ public class ZLog {
         mLogQueue.start();
     }
 
+    /**
+     * 初始化
+     * @param logDir
+     * @param saveToFile 是否保存到文件
+     * @param printOnTerminal 是否logcat显示到终端
+     */
+    public static synchronized void Init(String logDir,Boolean saveToFile, Boolean printOnTerminal){
+        mLogDir = logDir;
+        mLogQueue = new LogQueue(logDir);
+        mLogQueue.start();
+        ZLog.saveToFile = saveToFile;
+        ZLog.printOnTerminal = printOnTerminal;
+    }
+
     public static void e(String TAG, String text){
         if (printOnTerminal)
             e(TAG, text, true);
