@@ -201,6 +201,7 @@ class LogDispatcher extends Thread {
             }
             FileWriter writer = new FileWriter(file, true);
             writer.write(text);
+            writer.flush();
             writer.close();
         } catch (Exception e) {
             Log.e(TAG, "saveTextToFile: ", e);
