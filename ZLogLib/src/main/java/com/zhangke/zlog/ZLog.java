@@ -49,15 +49,15 @@ public class ZLog {
     /**
      * 初始化
      * @param logDir
-     * @param saveToFile 是否保存到文件
-     * @param printOnTerminal 是否logcat显示到终端
+     * @param saveToFile1 是否保存到文件
+     * @param printOnTerminal1 是否logcat显示到终端
      */
-    public static synchronized void Init(String logDir,Boolean saveToFile, Boolean printOnTerminal){
+    public static synchronized void Init(String logDir,Boolean saveToFile1, Boolean printOnTerminal1){
         mLogDir = logDir;
         mLogQueue = new LogQueue(logDir);
         mLogQueue.start();
-        ZLog.saveToFile = saveToFile;
-        ZLog.printOnTerminal = printOnTerminal;
+        saveToFile = saveToFile1;
+        printOnTerminal = printOnTerminal1;
     }
 
     public static void e(String TAG, String text){
